@@ -3,10 +3,7 @@ import sys
 import logging
 import time
 import requests
-
-from logging.handlers import StreamHandler
 from http import HTTPStatus
-
 
 from dotenv import load_dotenv
 from telebot import TeleBot
@@ -36,17 +33,17 @@ logging.basicConfig(
     )
 
 logger = logging.getLogger(__name__)
-handler = StreamHandler(sys.stdout)  #ПРОВЕРИТЬ НУЖЕН ЛИ СТДАУТ
+handler = logging.StreamHandler(stream=sys.stdout)
 logger.addHandler(handler) 
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
     if not TELEGRAM_TOKEN:
-        logging.critical('Отсутствует переменная TELEGRAM_TOKEN.')
+        logger.critical('Отсутствует переменная TELEGRAM_TOKEN.')
     if not TELEGRAM_CHAT_ID:
-        logging.critical('Отсутствует переменная TELEGRAM_CHAT_ID.')
+        logger.critical('Отсутствует переменная TELEGRAM_CHAT_ID.')
     if not PRACTICUM_TOKEN:
-        logging.critical('Отсутствует переменная PRACTICUM_TOKEN.')
+        logger.critical('Отсутствует переменная PRACTICUM_TOKEN.')
     return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
 
@@ -64,13 +61,18 @@ def get_api_answer(timestamp):
     payload = {'from_date': timestamp}
     try:
         response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
+        if response.status_code != HTTPStatus.OK:
+            raise AssertionError(response)
     except Exception as error:
-        logging.error(f'Ошибка эндпоинта: {error}.')
+        logger.error(f'Ошибка эндпоинта: {error}.')
     return response.json()
 
 
 def check_response(response):
     """Проверка ответа API на соответствие документации."""
+    if not isinstance(response, dict):
+        logger.error('В ответе API не получен словарь.')
+        raise TypeError('В ответе API не получен словарь.')
     if 'homeworks' not in response:
         logger.error('Отсутствует ключ "homeworks".')
         raise KeyError
@@ -82,7 +84,9 @@ def check_response(response):
 
 def parse_status(homework):
     """Извлекает статус конкретной домашней работы из ответа API."""
-    # homework_list = homework['homeworks']
+    if 'homework_name' not in homework:
+        logger.error('В ответе API нет ключа "homework_name".')
+        raise KeyError('В ответе API нет ключа "homework_name".')
     homework_name = homework['homework_name']
     homework_status = homework['status']
     if homework_status not in HOMEWORK_VERDICTS:
@@ -94,16 +98,16 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
-    if not check_response():
+    if not check_tokens():
         logger.critical(
             'Отсутствуют переменные окружения.'
             'Программа принудительно остановлена.'
             )
         sys.exit()
-    bot = TeleBot(token='TELEGRAM_TOKEN')
+    bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
 
-    
+
     while True:
         try:
             response = get_api_answer(timestamp)
