@@ -59,14 +59,16 @@ def send_message(bot, message):
 def get_api_answer(timestamp):
     """Делает запрос к эндпоинту API-сервиса."""
     payload = {'from_date': timestamp}
-    response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
-    status = response.status_code
-    if status != HTTPStatus.OK:
-        raise AssertionError(response)
     try:
-        return response.json()
-    except Exception as error:
-        logger.error(f'Ошибка эндпоинта: {error}.')
+        response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
+    except requests.exceptions.RequestException:
+        logging.error('Ошибка эндпоинта.')
+    finally:
+        status = response.status_code
+        if status != HTTPStatus.OK:
+            raise AssertionError(response)
+        else:
+            return response.json()
 
 
 def check_response(response):
