@@ -110,6 +110,7 @@ def main():
             'Программа принудительно остановлена.'
             )
         sys.exit()
+
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
 
@@ -117,14 +118,16 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
-            homeworks = check_response(response)
+            check_response(response)
+            timestamp = response.get('current_date')
+            homeworks = response.get('homeworks')
             if homeworks:
                 message = parse_status(homeworks[0])
                 send_message(bot, message)
                 logging.debug('Отправлено сообщение о новом статусе.')
             else:
                  logger.debug('Статусы работ не изменились.')
-            timestamp = response.get('current_date')
+
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
