@@ -29,12 +29,12 @@ HOMEWORK_VERDICTS = {
 logging.basicConfig(
     level=logging.DEBUG,
     filename='program.log',
-    format='%(asctime)s, %(levelname)s, %(message)s, %(name)s'
-    )
+    format='%(asctime)s, %(levelname)s, %(message)s, %(name)s')
 
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler(stream=sys.stdout)
-logger.addHandler(handler) 
+logger.addHandler(handler)
+
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
@@ -107,13 +107,11 @@ def main():
     if not check_tokens():
         logger.critical(
             'Отсутствуют переменные окружения.'
-            'Программа принудительно остановлена.'
-            )
+            'Программа принудительно остановлена.')
         sys.exit()
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
-
 
     while True:
         try:
@@ -126,15 +124,13 @@ def main():
                 send_message(bot, message)
                 logging.debug('Отправлено сообщение о новом статусе.')
             else:
-                 logger.debug('Статусы работ не изменились.')
-
-
+                logger.debug('Статусы работ не изменились.')
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logger.error(error)
             send_message(bot, message)
         finally:
-             time.sleep(RETRY_PERIOD)
+            time.sleep(RETRY_PERIOD)
 
 
 if __name__ == '__main__':
