@@ -38,12 +38,10 @@ logger.addHandler(handler)
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-    if not TELEGRAM_TOKEN:
-        logger.critical('Отсутствует переменная TELEGRAM_TOKEN.')
-    if not TELEGRAM_CHAT_ID:
-        logger.critical('Отсутствует переменная TELEGRAM_CHAT_ID.')
-    if not PRACTICUM_TOKEN:
-        logger.critical('Отсутствует переменная PRACTICUM_TOKEN.')
+    for item in ('TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID', 'PRACTICUM_TOKEN'):
+        if not item:
+            logger.critical(f'Отсутствует переменная {item}.')
+            return False
     return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
 
@@ -62,7 +60,7 @@ def get_api_answer(timestamp):
     try:
         response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
     except requests.exceptions.RequestException:
-        logging.error('Ошибка эндпоинта.')
+        logger.error('Ошибка эндпоинта.')
     finally:
         status = response.status_code
         if status != HTTPStatus.OK:
