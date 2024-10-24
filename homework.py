@@ -64,6 +64,9 @@ def get_api_answer(timestamp):
     finally:
         status = response.status_code
         if status != HTTPStatus.OK:
+            logger.error(
+                f'Ошибка запроса к эндпоинту: {status}',
+                stack_info=True, exc_info=True)
             raise AssertionError(response)
         else:
             return response.json()
