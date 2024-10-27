@@ -78,16 +78,12 @@ def get_api_answer(timestamp):
 def check_response(response):
     """Проверка ответа API на соответствие документации."""
     if not isinstance(response, dict):
-        logger.error('В ответе API нет словаря.')
         raise TypeError('В ответе API нет словаря.')
     if 'homeworks' not in response:
-        logger.error('Отсутствует ключ "homeworks".')
         raise KeyError
     if not isinstance(response['homeworks'], list):
-        logger.error('В ответе API нет списка.')
         raise TypeError('В ответе API нет списка.')
     if 'current_date' not in response:
-        logger.error('Отсутствует ключ "current_date".')
         raise KeyError('Отсутствует ключ "current_date".')
     return response
 
