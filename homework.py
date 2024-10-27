@@ -38,10 +38,6 @@ logger.addHandler(handler)
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-    for item in ('TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID', 'PRACTICUM_TOKEN'):
-        if not item:
-            logger.critical(f'Отсутствует переменная {item}.')
-            return False
     return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
 
@@ -57,8 +53,13 @@ def send_message(bot, message):
 def get_api_answer(timestamp):
     """Делает запрос к эндпоинту API-сервиса."""
     payload = {'from_date': timestamp}
+    REQUEST_DATA = {
+        'url': ENDPOINT,
+        'headers': HEADERS,
+        'params': payload
+    }
     try:
-        response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
+        response = requests.get(**REQUEST_DATA)
     except requests.exceptions.RequestException:
         logger.error('Ошибка эндпоинта.')
     finally:
@@ -66,6 +67,8 @@ def get_api_answer(timestamp):
         if status != HTTPStatus.OK:
             logger.error(
                 f'Ошибка запроса к эндпоинту: {status}',
+                'Параметры запроса: API {url}; заголовки: {headers};'
+                'параметры {params}'.format(**REQUEST_DATA),
                 stack_info=True, exc_info=True)
             raise AssertionError(response)
         else:
