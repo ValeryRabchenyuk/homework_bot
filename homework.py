@@ -61,7 +61,7 @@ def get_api_answer(timestamp):
     try:
         response = requests.get(**REQUEST_DATA)
     except requests.exceptions.RequestException:
-        logger.error('Ошибка эндпоинта.')
+        raise Exception('Ошибка эндпоинта.')
     finally:
         status = response.status_code
         if status != HTTPStatus.OK:
@@ -91,12 +91,10 @@ def check_response(response):
 def parse_status(homework):
     """Извлекает статус конкретной домашней работы из ответа API."""
     if 'homework_name' not in homework:
-        logger.error('В ответе API нет ключа "homework_name".')
         raise KeyError('В ответе API нет ключа "homework_name".')
     homework_name = homework['homework_name']
     homework_status = homework['status']
     if homework_status not in HOMEWORK_VERDICTS:
-        logger.error('Неожиданный статус домашней работы.')
         raise Exception('Неожиданный статус домашней работы.')
     verdict = HOMEWORK_VERDICTS.get(homework_status)
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
